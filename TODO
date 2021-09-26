@@ -1,0 +1,9 @@
+* Make shell script to install playstation udev rules
+
+Approach:
+
+Rewrite OrbisEyeCam.{h, cpp} from here: https://github.com/Hackinside/PS5_camera_files/tree/main/source
+
+for Linux
+
+Then use _that_ to load custom firmwarefor PS5
