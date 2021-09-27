@@ -1,9 +1,9 @@
-#include <iostream>
-#include <fstream>
+#include <array>
 #include <cstdint>
+#include <fstream>
+#include <iostream>
 
 #include <libusb-1.0/libusb.h>
-#include <array>
 
 #include "src/transferrer.hpp"
 
@@ -37,7 +37,6 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    // Claim device
     rc = libusb_claim_interface(lusb_dev_hndl, 0);
 
     if (rc != 0) {
@@ -51,7 +50,6 @@ int main(int argc, char* argv[]) {
 
     if (firmware_file.is_open())
     {
-        //uint32_t length = (uint32_t)firmware_file.tellg();
         uint32_t length = static_cast<uint32_t>(firmware_file.tellg());
         firmware_file.seekg(0, std::ios::beg);
 
