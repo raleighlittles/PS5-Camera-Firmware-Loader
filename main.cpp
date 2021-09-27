@@ -1,6 +1,10 @@
 #include <iostream>
-#include <libusb-1.0/libusb.h>
+#include <fstream>
 #include <cstdint>
+
+#include <libusb-1.0/libusb.h>
+
+#include "transferrer.h"
 
 int main() {
 
@@ -30,6 +34,44 @@ int main() {
 
     if (rc != 0) {
         std::cout << "ERROR: Failed to claim device" << std::endl;
+        return -1;
+    }
+
+    uint32_t CHUNK_SIZE = 512; // Bulk transfers are limited to 512 bytes per USB standard
+    uint8_t chunk[CHUNK_SIZE];
+
+    std::string firmware_filename = "/home/raleigh/CLionProjects/ps5-camera/firmware.bin";
+    std::ifstream firmware_file(firmware_filename.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
+
+    if (firmware_file.is_open())
+    {
+        uint32_t length = (uint32_t)firmware_file.tellg();
+        firmware_file.seekg(0, std::ios::beg);
+
+        uint16_t index = 0x14;
+        uint16_t value = 0;
+
+        for (uint32_t pos = 0; pos < length; pos += CHUNK_SIZE)
+        {
+            uint16_t size = (CHUNK_SIZE > (length - pos) ? (uint16_t)(length - pos) : CHUNK_SIZE);
+            firmware_file.read((char*)chunk, size);
+            // submitAndWait_controlTransfer(0x40, 0x0, value, index, size, chunk);
+            ctrl_transfer_wrapper(lusb_dev_hndl, 0x40, 0x0, value, index, chunk, size);
+            if (((uint32_t)value + size) > 0xFFFF) index += 1;
+
+            value += size;
+        }
+        firmware_file.close();
+
+        chunk[0] = 0x5b;
+        // submitAndWait_controlTransfer(0x40, 0x0, 0x2200, 0x8018, 1, chunk);
+        ctrl_transfer_wrapper(lusb_dev_hndl, 0x40, 0x0, 0x2200, 0x8018, chunk, 1);
+
+        std::cout << "Firmware uploaded..." << std::endl;
+    }
+    else
+    {
+        std::cout << "Unable to open firmware.bin!" << std::endl;
         return -1;
     }
 
