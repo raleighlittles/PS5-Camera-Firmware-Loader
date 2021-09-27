@@ -1,6 +1,6 @@
 # About
 
-This tool is used to load firmware onto a PS5 camera.
+This tool is used to load firmware onto a PS5 camera: https://www.playstation.com/en-us/accessories/hd-camera/
 
 ![ps5-camera](https://gmedia.playstation.com/is/image/SIEPDC/hd-camera-ps5-image-block-03-en-02jul20?$facebook$)
 
