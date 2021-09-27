@@ -1,9 +1,8 @@
 #include <iostream>
 #include <libusb-1.0/libusb.h>
-#include <stdint.h>
+#include <cstdint>
 
 int main() {
-    libusb_context* lusb_ctxt = nullptr;
 
     uint16_t productId = 0x0580;
     uint16_t vendorId = 0x05a9;
