@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    rc = libusb_claim_interface(lusb_dev_hndl, 0);
+    rc = libusb_claim_interface(lusb_dev_hndl, libusb_speed::LIBUSB_SPEED_UNKNOWN);
 
     if (rc != 0) {
         std::cout << "ERROR: Failed to claim device" << std::endl;

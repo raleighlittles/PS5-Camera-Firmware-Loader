@@ -59,3 +59,7 @@ uvcvideo: Found UVC 1.00 device USB Camera-OV580 (05a9:058c)
 ```
 
 Open your favorite webcam program and now you're all set.
+
+Here's a test image:
+
+![test-image](./ps5-camera-test-image.jpg)

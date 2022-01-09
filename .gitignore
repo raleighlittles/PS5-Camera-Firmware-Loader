@@ -1,2 +1,9 @@
 # Project exclude paths
 /cmake-build-debug/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+CMakeFiles/
+
+# Don't check in the binary
+ps5_camera_firmware_loader
