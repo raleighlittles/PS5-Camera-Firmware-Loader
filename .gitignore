@@ -7,3 +7,7 @@ CMakeFiles/
 
 # Don't check in the binary
 ps5_camera_firmware_loader
+
+# IDE files
+.idea/
+.vscode/

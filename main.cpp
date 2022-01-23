@@ -12,12 +12,12 @@ constexpr static unsigned int CHUNK_SIZE = 512; // Bulk transfers are limited to
 int main(int argc, char* argv[]) {
 
     if (argc != 2) {
-        std::cout << "ERROR: Incorrect number of arguments" << std::endl;
+        std::cerr << "ERROR: Incorrect number of arguments" << std::endl;
         return -1;
     }
 
-    uint16_t productId = 0x0580;
-    uint16_t vendorId = 0x05a9;
+    const uint16_t productId = 0x0580;
+    const uint16_t vendorId = 0x05a9;
 
     libusb_context* lusb_context = nullptr;
 
@@ -25,26 +25,38 @@ int main(int argc, char* argv[]) {
 
     libusb_set_option(lusb_context, LIBUSB_OPTION_LOG_LEVEL, LIBUSB_LOG_LEVEL_DEBUG);
 
-    if (rc != 0) {
-        std::cout << "ERROR: Failed to initialize libusb" << std::endl;
+    if (rc != libusb_error::LIBUSB_SUCCESS) {
+        std::cerr << "ERROR: Failed to initialize libusb, libusb error# = " << rc << std::endl;
         return -1;
     }
 
     libusb_device_handle* lusb_dev_hndl = libusb_open_device_with_vid_pid(lusb_context, vendorId, productId);
 
     if (!lusb_dev_hndl) {
-        std::cout << "ERROR: libusb device handler null"  << std::endl;
+        std::cerr << "ERROR: libusb device handler null"  << std::endl;
         return -1;
     }
 
-    rc = libusb_claim_interface(lusb_dev_hndl, 0);
+    // Device only has one 1 USB interface (see `lsusb` output)
+    const int interfaceNum = 0;
 
-    if (rc != 0) {
-        std::cout << "ERROR: Failed to claim device" << std::endl;
+    // Can't claim the device if the operating system is using it
+    if (libusb_kernel_driver_active(lusb_dev_hndl, interfaceNum)) {
+        if (libusb_detach_kernel_driver(lusb_dev_hndl, interfaceNum) != libusb_error::LIBUSB_SUCCESS) {
+            std::cerr << "ERROR: Failed to detach kernel driver for device. libusb error#= " << rc << std::endl;
+            return -1;
+        }
+    }
+
+    rc = libusb_claim_interface(lusb_dev_hndl, interfaceNum);
+
+    if (rc != libusb_error::LIBUSB_SUCCESS) {
+        std::cerr << "ERROR: Failed to claim device, libusb error#=" << rc << std::endl;
         return -1;
     }
 
     std::array<uint8_t, CHUNK_SIZE> chunk{};
+    const uint8_t usbWriteReqType = 0x40;
 
     std::ifstream firmware_file(argv[1], std::ios::in | std::ios::binary | std::ios::ate);
 
@@ -55,7 +67,6 @@ int main(int argc, char* argv[]) {
 
         uint16_t index = 0x14;
         uint16_t value = 0;
-        uint8_t usbWriteReqType = 0x40;
 
         for (uint32_t pos = 0; pos < length; pos += CHUNK_SIZE)
         {
