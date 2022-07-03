@@ -5,6 +5,8 @@ cmake_install.cmake
 Makefile
 CMakeFiles/
 **/.cmake/**
+**/build.ninja
+**/Testing/**
 
 # Don't check in the binary
 ps5_camera_firmware_loader
