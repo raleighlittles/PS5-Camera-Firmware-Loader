@@ -2,7 +2,7 @@
 
 fn main() {
 
-    let firmware_filename = std::env::args().nth(1).expect("No firmware filename received");
+    let firmware_filename : String = std::env::args().nth(1).expect("No firmware filename received");
 
     let mut libusb_context : libusb::Context = libusb::Context::new().unwrap();
 
@@ -27,8 +27,25 @@ fn main() {
         libusb_dev_handle.detach_kernel_driver(usbInterfaceNum);
     }
 
-    libusb_dev_handle.claim_interface(usbInterfaceNum);
+    libusb_dev_handle.claim_interface(usbInterfaceNum).unwrap();
 
-    // TODO: Read firmware file in
+    // USB device is setup and ready to communicate to!
+
+    let firmware_file_as_bytes : Vec<u8> = std::fs::read(firmware_filename).unwrap();
+
+    const max_usb_chunk_size : u16 = 512;
+
+    // Note: Rust doesn't let you modify the value of the index inside of a for loop
+
+    let mut idx = 0;
+    let mut length = firmware_file_as_bytes.len();
+
+    while (idx < length) {
+
+        // Transmit up to as many bytes as you can
+        // Note: Really wish Rust had a ternary operator
+    }
+
+    
 
 }
