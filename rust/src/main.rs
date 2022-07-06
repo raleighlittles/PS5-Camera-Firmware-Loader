@@ -33,19 +33,44 @@ fn main() {
 
     let firmware_file_as_bytes : Vec<u8> = std::fs::read(firmware_filename).unwrap();
 
-    const max_usb_chunk_size : u16 = 512;
+    const max_usb_chunk_size : usize = 512;
+
+    /* Constant comes from the bitmask: 0b1000000
+       Result of setting 'Data Phase Transfer Detection' bit to 1, all others to 0
+       See: https://www.beyondlogic.org/usbnutshell/usb6.shtml */
+    const usb_outgoing_packet_bmRequestType : u8 = 0x40;
 
     // Note: Rust doesn't let you modify the value of the index inside of a for loop
 
-    let mut idx = 0;
-    let mut length = firmware_file_as_bytes.len();
+    let mut idx : u32 = 0;
+    let mut length : u32 = usize::try_into(firmware_file_as_bytes.len()).unwrap();
+
+    let mut usbPacket : [u8; max_usb_chunk_size] = [0; max_usb_chunk_size];
 
     while (idx < length) {
 
         // Transmit up to as many bytes as you can
-        // Note: Really wish Rust had a ternary operator
+        let usbPacketSize : u16;
+
+        let bytesRemaining = length - idx;
+
+        if (max_usb_chunk_size > bytesRemaining as usize) {
+            usbPacketSize = bytesRemaining as u16;
+        }
+        else {
+            usbPacketSize = max_usb_chunk_size as u16;
+        }
+
+        // TODO: Help???
+        usbPacket = firmware_file_as_bytes[idx ..(idx + usbPacketSize)];
+
+        // Magic numbers; not entirely sure where they come from -- likely device-specific. Taken from original Windows implementation
+        let bytesTransferred = libusb_dev_handle.write_control(usb_outgoing_packet_bmRequestType, 0x0, 0x2200, 0x0018, usbPacket, 0).unwrap();
+
+        if (bytesTransferred < 1) {
+            panic!("libusb encountered an error during transmission, some bytes were not correctly sent");
+        }
     }
 
-    
 
 }
