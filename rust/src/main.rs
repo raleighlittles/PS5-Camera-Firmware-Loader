@@ -62,7 +62,7 @@ fn main() {
         }
 
         // TODO: Help???
-        usbPacket = firmware_file_as_bytes[idx ..(idx + usbPacketSize)];
+        usbPacket = firmware_file_as_bytes[idx as usize ..(idx + u32::from(usbPacketSize)) as usize];
 
         // Magic numbers; not entirely sure where they come from -- likely device-specific. Taken from original Windows implementation
         let bytesTransferred = libusb_dev_handle.write_control(usb_outgoing_packet_bmRequestType, 0x0, 0x2200, 0x0018, usbPacket, 0).unwrap();
