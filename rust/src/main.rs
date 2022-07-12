@@ -1,4 +1,4 @@
-
+#![deny(warnings)]
 
 fn main() {
 
