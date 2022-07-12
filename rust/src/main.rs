@@ -42,17 +42,16 @@ fn main() {
 
     // Note: Rust doesn't let you modify the value of the index inside of a for loop
 
-    let mut idx : u32 = 0;
+    let mut idx : u16 = 0x14; // 20d
+    let mut value : u16 = 0;
     let mut length : u32 = usize::try_into(firmware_file_as_bytes.len()).unwrap();
 
-    let mut usbPacket : [u8; max_usb_chunk_size] = [0; max_usb_chunk_size];
-
-    while (idx < length) {
+    while ((idx as u32) < length) {
 
         // Transmit up to as many bytes as you can
         let usbPacketSize : u16;
 
-        let bytesRemaining = length - idx;
+        let bytesRemaining = length - (idx as u32);
 
         if (max_usb_chunk_size > bytesRemaining as usize) {
             usbPacketSize = bytesRemaining as u16;
@@ -61,15 +60,21 @@ fn main() {
             usbPacketSize = max_usb_chunk_size as u16;
         }
 
-        // TODO: Help???
-        usbPacket = firmware_file_as_bytes[idx as usize ..(idx + u32::from(usbPacketSize)) as usize];
-
         // Magic numbers; not entirely sure where they come from -- likely device-specific. Taken from original Windows implementation
-        let bytesTransferred = libusb_dev_handle.write_control(usb_outgoing_packet_bmRequestType, 0x0, 0x2200, 0x0018, usbPacket, 0).unwrap();
+        let bytesTransferred = libusb_dev_handle.write_control(usb_outgoing_packet_bmRequestType, 0x0, value, idx, &firmware_file_as_bytes[idx as usize .. (idx + usbPacketSize) as usize], std::time::Duration::ZERO).unwrap();
 
         if (bytesTransferred < 1) {
             panic!("libusb encountered an error during transmission, some bytes were not correctly sent");
         }
+
+        idx += max_usb_chunk_size as u16;
+        value += usbPacketSize
+    }
+
+    // Lastly, transmit header byte
+    let footer_packet : [u8 ; 1] = [0x5B];
+    if (libusb_dev_handle.write_control(usb_outgoing_packet_bmRequestType, 0x0, 0x2200, 0x8018, &footer_packet, std::time::Duration::ZERO).unwrap() != footer_packet.len()) {
+        panic!("Failed to transmit footer byte")
     }
 
 
