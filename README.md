@@ -1,6 +1,6 @@
 # About
 
-This tool is used to load firmware onto a PS5 camera: https://www.playstation.com/en-us/accessories/hd-camera/
+This tool is used to load firmware onto a Playstation 5 camera: https://www.playstation.com/en-us/accessories/hd-camera/
 
 ![ps5-camera](https://gmedia.playstation.com/is/image/SIEPDC/hd-camera-ps5-image-block-03-en-02jul20?$facebook$)
 
@@ -10,13 +10,13 @@ This is a Linux port of [OrbisEyeCam](https://github.com/psxdev/OrbisEyeCam) for
 
 # Webcam setup
 
-To use this as a webcam, we'll load a custom firmware onto the device. Download `firmware.bin` from here: https://github.com/Hackinside/PS5_camera_files/blob/main/firmware.bin
+To use this as a webcam, we need to install custom firmware onto the device (the default firmware doesn't use UVC). Download `firmware.bin` from here: https://github.com/Hackinside/PS5_camera_files/blob/main/firmware.bin
 
 (Kudos to @Hackinside for the custom firmware)
 
 ## Connect device
 
-Connect your PS5 camera to your PC via USB.
+Connect your PS5 camera to a USB 3.0 port on your computer.
 
 Make sure you see the following in the dmesg log:
 
@@ -43,12 +43,21 @@ Keep the dmesg window open, we'll need it for later.
 
 ## Run the script
 
-Build and run this project using CMake.
+This product has two "back-ends", one written in C++ and one written in Rust. You can use either, but the C++ backend has been tested more thoroughly.
+
+To build & run the C++ version:
 
 ```bash
 $ cmake CMakeLists.txt
 $ make 
 $ ./ps5_camera_firmware_loader <firmware-file-path>
+```
+
+To build & run the Rust version:
+
+```bash
+$ cargo build --manifest-path=Cargo.toml
+$ ./target/debug/ps5_camera_firmware_loader <firmware-file-path>
 ```
 
 ## Success 	:heavy_check_mark:
