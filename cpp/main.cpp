@@ -5,7 +5,7 @@
 
 #include <libusb-1.0/libusb.h>
 
-#include "src/transferrer.hpp"
+#include "transferrer.hpp"
 
 constexpr static unsigned int CHUNK_SIZE = 512; // Bulk transfers are limited to 512 bytes per USB standard
 
