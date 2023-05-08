@@ -24,7 +24,7 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Build Rust version
-        run: cargo build --manifest-path rust/Cargo.toml
+        run: apt-get install -y libusb-1.0-0-dev && cargo build --manifest-path rust/Cargo.toml
         
       - name: Build C++ version
-        run: cd cpp && cmake CMakeLists.txt && make
+        run: apt-get install -y libusb-1.0-0-dev && cd cpp && cmake CMakeLists.txt && make
