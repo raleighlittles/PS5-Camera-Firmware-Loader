@@ -1,3 +1,5 @@
+![build-badge](https://github.com/raleighlittles/PS5-Camera-Firmware-Loader/actions/workflows/main.yml/badge.svg)
+
 # About
 
 This tool is used to load firmware onto a Playstation 5 camera: https://www.playstation.com/en-us/accessories/hd-camera/
