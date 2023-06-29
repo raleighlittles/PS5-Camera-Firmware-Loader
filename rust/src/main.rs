@@ -1,9 +1,4 @@
 
-/** File: main.rs
- * 
- * 
- */
-
 fn main() {
 
     let firmware_filename : String = std::env::args().nth(1).expect("No firmware filename received");
@@ -49,110 +44,52 @@ fn main() {
 
     let firmware_file_len = firmware_file_as_bytes.len();
 
-    /* To "load" the firmware onto the device, write out the first 64 KB of the firmware file
-    to the device over USB, then send a footer packet */
+    // Firmware files need to be at least 64 KB in size
+    const MIN_FIRMWARE_FILE_SIZE : u16 = u16::MAX;
 
-    const TOTAL_BYTES_TO_WRITE : u16 = u16::MAX;
+    if firmware_file_len < (MIN_FIRMWARE_FILE_SIZE as usize) {
 
-    if firmware_file_len < (TOTAL_BYTES_TO_WRITE as usize) {
-
-        panic!("Firmware file size is insufficient. Expected={}, actual size={}", TOTAL_BYTES_TO_WRITE, firmware_file_len)
+        panic!("Firmware file size is insufficient. Expected={}, actual size={}", MIN_FIRMWARE_FILE_SIZE, firmware_file_len)
     }
 
     let mut file_byte_idx: usize = 0;
 
     // Not sure why this is the starting value. Constant was taken from OrbisEyeCam implementation
-    let transaction_idx : u16 = 0x14; // 20d
-    let transaction_idx_2 = 0x15; // 21d 
-    //let mut wValue : u16 = 0;
+    let lower_transaction_idx : u16 = 0x14; // 20d
+    let upper_transaction_idx = 0x15; // 21d 
+
+    /* Goes from 0 to 65536, incrementing by 512. Then, starts over at 0, and continues incrementing.
+       This is again something that was taken from OrbisEyeCam */
     let mut wValue = std::num::Wrapping(std::u16::MAX);
     wValue.0 = 0;
 
     while file_byte_idx  < firmware_file_len {
         
-        // let pkt_size = std::cmp::min(TOTAL_BYTES_TO_WRITE - file_byte_idx, MAX_USB_CHUNK_SIZE);
+        let pkt_size = std::cmp::min(firmware_file_len - file_byte_idx, USB_MAX_PACKET_SIZE as usize);
 
-        let pkt_size : usize;
+        // let pkt_size : usize;
 
-        if USB_MAX_PACKET_SIZE as usize > (firmware_file_len - file_byte_idx){
-            pkt_size = firmware_file_len - file_byte_idx;
-        } else {
-            pkt_size = USB_MAX_PACKET_SIZE as usize;
-        }
+        // if USB_MAX_PACKET_SIZE as usize > (firmware_file_len - file_byte_idx){
+        //     pkt_size = firmware_file_len - file_byte_idx;
+        // } else {
+        //     pkt_size = USB_MAX_PACKET_SIZE as usize;
+        // }
 
         let pkt_end_idx : usize = file_byte_idx + (pkt_size as usize);
 
-        //println!(".");
+        let cur_transaction_idx = if file_byte_idx < (std::u16::MAX as usize) { lower_transaction_idx } else { upper_transaction_idx };
 
-        let cur_transaction_idx = if (file_byte_idx < std::u16::MAX as usize) { transaction_idx } else { transaction_idx_2 };
+        let bytes_transferred = libusb_dev_handle.write_control(USB_OUTGOING_PACKET_BM_REQUEST_TYPE, 0x0, wValue.0, cur_transaction_idx, &firmware_file_as_bytes[file_byte_idx as usize .. pkt_end_idx], std::time::Duration::ZERO).unwrap();
 
-        let bytes_transferred = libusb_dev_handle.write_control(USB_OUTGOING_PACKET_BM_REQUEST_TYPE, 0x0, wValue.0, cur_transaction_idx, &firmware_file_as_bytes[file_byte_idx as usize .. pkt_end_idx], std::time::Duration::ZERO);
+        // Careful with this log statement. Logging in between USB transactions can slow things down enough to where it no longer works
+        //println!("Transferred {} bytes [{} , {}], value= {}, index= {}", bytes_transferred, file_byte_idx, pkt_end_idx, wValue.0, transaction_idx);
 
-        //println!("Transferred {} bytes [{} , {}], value= {}, index= {}", pkt_size, file_byte_idx, pkt_end_idx, wValue.0, transaction_idx);
-
-        //transaction_idx += 1;
         wValue += pkt_size as u16;
         file_byte_idx += pkt_size as usize;
 
     }
 
-    // for chunk in firmware_file_as_bytes[0..=std::u16::MAX as usize].chunks(USB_MAX_PACKET_SIZE as usize) {
-    //     libusb_dev_handle.write_control(USB_OUTGOING_PACKET_BM_REQUEST_TYPE, 0x0, wValue, transaction_idx, chunk, std::time::Duration::ZERO).unwrap();
-    //     wValue.checked_add(USB_MAX_PACKET_SIZE);
-    // }
-
-    // transaction_idx = 21;
-    //wValue = 0;
-
-    // for chunk in firmware_file_as_bytes[0 as usize..3584].chunks(USB_MAX_PACKET_SIZE as usize) {
-    //     libusb_dev_handle.write_control(USB_OUTGOING_PACKET_BM_REQUEST_TYPE, 0x0, wValue, transaction_idx, chunk, std::time::Duration::ZERO).unwrap();
-    //     wValue += USB_MAX_PACKET_SIZE;
-    // }
-
-    // for chunk in firmware_file_as_bytes.chunks(USB_MAX_PACKET_SIZE as usize) {
-
-    //     println!(".");
-
-    //     libusb_dev_handle.write_control(USB_OUTGOING_PACKET_BM_REQUEST_TYPE, 0x0, wValue.0, transaction_idx, chunk, std::time::Duration::ZERO).unwrap();
-
-    //     println!("Transferred {} bytes, value= {}, index= {}", USB_MAX_PACKET_SIZE , wValue, transaction_idx);
-
-    //     wValue += USB_MAX_PACKET_SIZE;
-        
-    // }
-
-
-    //let mut wValue = 0;
-    // let mut wValue = std::num::Wrapping(std::u16::MAX);
-    // wValue.0 = 0;
-
-    // for chunk in firmware_file_as_bytes[0..std::u16::MAX as usize].chunks(USB_MAX_PACKET_SIZE as usize) {
-
-    //     //println!(".");
-
-    //     libusb_dev_handle.write_control(USB_OUTGOING_PACKET_BM_REQUEST_TYPE, 0x0, wValue.0, transaction_idx, chunk, std::time::Duration::ZERO).unwrap();
-
-    //     println!("Transferred {} bytes, value={}, index={}", USB_MAX_PACKET_SIZE, wValue.0, transaction_idx);
-
-    //     wValue += USB_MAX_PACKET_SIZE;
-    // }
-
-    // wValue.0 = 0;
-    // transaction_idx += 1;
-
-    // for chunk in firmware_file_as_bytes[std::u16::MAX as usize .. firmware_file_len].chunks(USB_MAX_PACKET_SIZE as usize) {
-
-    //     //println!(".");
-
-    //     libusb_dev_handle.write_control(USB_OUTGOING_PACKET_BM_REQUEST_TYPE, 0x0, wValue.0, transaction_idx, chunk, std::time::Duration::ZERO).unwrap();
-
-    //     println!("Transferred {} bytes, value={}, index={}", USB_MAX_PACKET_SIZE, wValue.0, transaction_idx);
-
-    //     wValue += USB_MAX_PACKET_SIZE;
-    // }
-
-
-    // Lastly, transmit footer packet
+    // Again, taken from OrbisEyeCam
     let footer_packet : [u8 ; 1] = [0x5B];
 
     libusb_dev_handle.write_control(USB_OUTGOING_PACKET_BM_REQUEST_TYPE, 0x0, 0x2200, 0x8018, &footer_packet, std::time::Duration::ZERO).unwrap();
