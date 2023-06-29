@@ -1,3 +1,4 @@
+
 /** File: main.rs
  * 
  * 
@@ -9,7 +10,7 @@ fn main() {
 
     let mut libusb_context : libusb::Context = libusb::Context::new().unwrap();
 
-    libusb_context.set_log_level(libusb::LogLevel::Debug);
+    libusb_context.set_log_level(libusb::LogLevel::Warning);
 
     // See `libusb` output in documentation for where these come from
     const USB_VENDOR_ID : u16 = 0x05a9;
@@ -39,53 +40,78 @@ fn main() {
     let firmware_file_as_bytes : Vec<u8> = std::fs::read(firmware_filename).unwrap();
 
     // USB official standard limits packet size to 512 bytes
-    const MAX_USB_CHUNK_SIZE : usize = 512;
+    const USB_MAX_PACKET_SIZE : u16 = 512;
 
     /* Constant comes from the bitmask: 0b1000000
        Result of setting 'Data Phase Transfer Detection' bit to 1, all others to 0
        See: https://www.beyondlogic.org/usbnutshell/usb6.shtml */
     const USB_OUTGOING_PACKET_BM_REQUEST_TYPE : u8 = 0x40;
 
-    // Note: Rust doesn't let you modify the value of the index inside of a for loop
-    let mut idx : u16 = 0x14; // 20d
-    let mut value : u16 = 0;
+    let firmware_file_len = firmware_file_as_bytes.len();
 
-    let length : u32 = usize::try_into(firmware_file_as_bytes.len()).unwrap();
+    /* To "load" the firmware onto the device, write out the first 64 KB of the firmware file
+    to the device over USB, then send a footer packet */
 
-    /* To "load" the firmware onto the device, you simply write the firmware file out to the device via USB,
-       then send a 'footer' byte at the end */
+    const TOTAL_BYTES_TO_WRITE : u16 = u16::MAX;
 
-    while (idx as u32) < length {
+    if firmware_file_len < (TOTAL_BYTES_TO_WRITE as usize) {
 
-        // Transmit up to as many bytes as you can
-        let usb_packet_size : u16;
-
-        let bytes_remaining = length - (idx as u32);
-
-        if MAX_USB_CHUNK_SIZE > bytes_remaining as usize {
-            usb_packet_size = bytes_remaining as u16;
-        }
-        else {
-            usb_packet_size = MAX_USB_CHUNK_SIZE as u16;
-        }
-
-        // Magic numbers; not entirely sure where they come from -- likely device-specific. Taken from original Windows implementation
-        let bytes_transferred = libusb_dev_handle.write_control(USB_OUTGOING_PACKET_BM_REQUEST_TYPE, 0x0, value, idx, &firmware_file_as_bytes[idx as usize .. (idx + usb_packet_size) as usize], std::time::Duration::ZERO).unwrap();
-
-        if bytes_transferred < 1 {
-            panic!("libusb encountered an error during transmission, some bytes were not correctly sent");
-        }
-
-        idx += MAX_USB_CHUNK_SIZE as u16;
-        value += usb_packet_size
+        panic!("Firmware file size is insufficient. Expected={}, actual size={}", TOTAL_BYTES_TO_WRITE, firmware_file_len)
     }
 
-    // Lastly, transmit header byte
+    let mut file_byte_idx: usize = 0;
+
+    // Not sure why this is the starting value. Constant was taken from OrbisEyeCam implementation
+    let mut transaction_idx : u16 = 0x14; // 20d
+    let mut wValue : u16 = 0;
+
+    while file_byte_idx  < firmware_file_len {
+        
+        // let pkt_size = std::cmp::min(TOTAL_BYTES_TO_WRITE - file_byte_idx, MAX_USB_CHUNK_SIZE);
+
+        let pkt_size : u16;
+
+        if USB_MAX_PACKET_SIZE > (TOTAL_BYTES_TO_WRITE - file_byte_idx as u16) {
+            pkt_size = TOTAL_BYTES_TO_WRITE - file_byte_idx as u16;
+        } else {
+            pkt_size = USB_MAX_PACKET_SIZE;
+        }
+
+        if (pkt_size == USB_MAX_PACKET_SIZE) {
+            let bytes_transferred = libusb_dev_handle.write_control(USB_OUTGOING_PACKET_BM_REQUEST_TYPE, 0x0, wValue, transaction_idx, &firmware_file_as_bytes[file_byte_idx as usize .. (file_byte_idx.wrapping_add(pkt_size as usize))], std::time::Duration::ZERO).unwrap();
+        } else {
+            // Where adding would cause a wrap, simply add an extra byte to the transfer
+            let mut special_chunk : Vec<u8>  = firmware_file_as_bytes[file_byte_idx as usize .. (file_byte_idx.wrapping_add(pkt_size as usize)) as usize].to_vec();
+            special_chunk.push(firmware_file_as_bytes[(std::u16::MAX as usize + 1) as usize]);
+
+            let bytes_transferred = libusb_dev_handle.write_control(USB_OUTGOING_PACKET_BM_REQUEST_TYPE, 0x0, wValue, transaction_idx, &special_chunk, std::time::Duration::ZERO).unwrap();
+        }
+
+        //transaction_idx += 1;
+        wValue.wrapping_add(pkt_size as u16);
+        file_byte_idx.wrapping_add(pkt_size as usize);
+
+        println!("Transferred {} bytes, value= {}, index= {}", pkt_size, wValue, transaction_idx);
+    }
+
+
+    // for chunk in firmware_file_as_bytes[0..=std::u16::MAX as usize].chunks(USB_MAX_PACKET_SIZE as usize) {
+    //     libusb_dev_handle.write_control(USB_OUTGOING_PACKET_BM_REQUEST_TYPE, 0x0, wValue, transaction_idx, chunk, std::time::Duration::ZERO).unwrap();
+    //     wValue.checked_add(USB_MAX_PACKET_SIZE);
+    // }
+
+    // transaction_idx = 21;
+    // wValue = 0;
+
+    // for chunk in firmware_file_as_bytes[0 as usize..3584].chunks(USB_MAX_PACKET_SIZE as usize) {
+    //     libusb_dev_handle.write_control(USB_OUTGOING_PACKET_BM_REQUEST_TYPE, 0x0, wValue, transaction_idx, chunk, std::time::Duration::ZERO).unwrap();
+    //     wValue += USB_MAX_PACKET_SIZE;
+    // }
+
+    // Lastly, transmit footer packet
     let footer_packet : [u8 ; 1] = [0x5B];
 
-    if libusb_dev_handle.write_control(USB_OUTGOING_PACKET_BM_REQUEST_TYPE, 0x0, 0x2200, 0x8018, &footer_packet, std::time::Duration::ZERO).unwrap() != footer_packet.len() {
-        panic!("Failed to transmit footer byte")
-    }
+    libusb_dev_handle.write_control(USB_OUTGOING_PACKET_BM_REQUEST_TYPE, 0x0, 0x2200, 0x8018, &footer_packet, std::time::Duration::ZERO).ok();
 
 
 }
