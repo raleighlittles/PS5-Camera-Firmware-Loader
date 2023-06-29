@@ -8,7 +8,7 @@ This tool is used to install firmware onto a Playstation 5 camera: <https://www.
 
 The main reason why you'd want to load custom firmware onto the camera is to be able to use it as a [UVC device](https://en.wikipedia.org/wiki/USB_video_device_class), i.e. a webcam.
 
-This is a Linux port of [OrbisEyeCam](https://github.com/psxdev/OrbisEyeCam) for Windows. Kudos to @psxdev for the initial effort of reverse-engineering it.
+This is a Linux port of [OrbisEyeCam](https://github.com/psxdev/OrbisEyeCam) for Windows. Kudos to @psxdev for the initial effort of reverse-engineering.
 
 # Webcam setup
 
@@ -44,14 +44,16 @@ Keep the dmesg window open, we'll need it for later.
 0. Make sure your user is part of the `plugdev` group. Easiest way to do this is to check your `/etc/group` file. If you're not in the plugdev group, run:
 
 ```bash
-sudo usermod -a -G plugdev $USER
+$ sudo usermod -a -G plugdev $USER
 ```
 
 1. Copy the udev rules (`100-playstation-camera.rules`) to `/etc/udev/rules.d`
 
 2. Reload the udev rules by running:
 
-`$ sudo udevadm control --reload ; sudo udevadm trigger`
+```bash
+$ sudo udevadm control --reload ; sudo udevadm trigger
+```
 
 ## Run the script
 
@@ -60,19 +62,19 @@ This product has two "back-ends", one written in C++ and one written in Rust. Th
 To build & run the C++ version:
 
 ```bash
-cmake CMakeLists.txt
-make 
-./ps5_camera_firmware_loader <firmware-file-path>
+$ cmake CMakeLists.txt
+$ make 
+$ ./ps5_camera_firmware_loader <firmware-file-path>
 ```
 
 To build & run the Rust version:
 
 ```bash
-cargo build --manifest-path=Cargo.toml
-./target/debug/ps5_camera_firmware_loader <firmware-file-path>
+$ cargo build --manifest-path=Cargo.toml
+$ ./target/debug/ps5_camera_firmware_loader <firmware-file-path>
 ```
 
-## Success  :heavy_check_mark
+## Success  :heavy_check_mark:
 
 Go back to the dmesg window from earlier. You should see the following line:
 
