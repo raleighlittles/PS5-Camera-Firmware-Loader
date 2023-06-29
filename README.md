@@ -2,7 +2,7 @@
 
 # About
 
-This tool is used to install firmware onto a Playstation 5 camera: https://www.playstation.com/en-us/accessories/hd-camera/
+This tool is used to install firmware onto a Playstation 5 camera: <https://www.playstation.com/en-us/accessories/hd-camera/>
 
 **Despite the name, it also works on Playstataion <u>4</u> cameras.**
 
@@ -16,8 +16,8 @@ To use this as a webcam, we need to install custom firmware onto the device (the
 
 You can find custom firmware for the Playstation camera on Github, here's a few that I've used:
 
-* https://github.com/prosperodev/hdcamera/blob/main/firmware/21.01-03.20.00.04-00.00.00.bin
-* https://github.com/Hackinside/PS5_camera_files/blob/main/firmware.bin
+* <https://github.com/prosperodev/hdcamera/blob/main/firmware/21.01-03.20.00.04-00.00.00.bin>
+* <https://github.com/Hackinside/PS5_camera_files/blob/main/firmware.bin>
 
 (Many more firmware versions are available [here](https://github.com/psxdev/luke_firmwares))
 
@@ -44,14 +44,14 @@ Keep the dmesg window open, we'll need it for later.
 0. Make sure your user is part of the `plugdev` group. Easiest way to do this is to check your `/etc/group` file. If you're not in the plugdev group, run:
 
 ```bash
-$ sudo usermod -a -G plugdev $USER
+sudo usermod -a -G plugdev $USER
 ```
 
 1. Copy the udev rules (`100-playstation-camera.rules`) to `/etc/udev/rules.d`
 
-2. Reload the udev rules by running: 
+2. Reload the udev rules by running:
 
-`$ sudo udevadm control --reload ; sudo udevadm trigger `
+`$ sudo udevadm control --reload ; sudo udevadm trigger`
 
 ## Run the script
 
@@ -60,19 +60,19 @@ This product has two "back-ends", one written in C++ and one written in Rust. Th
 To build & run the C++ version:
 
 ```bash
-$ cmake CMakeLists.txt
-$ make 
-$ ./ps5_camera_firmware_loader <firmware-file-path>
+cmake CMakeLists.txt
+make 
+./ps5_camera_firmware_loader <firmware-file-path>
 ```
 
 To build & run the Rust version:
 
 ```bash
-$ cargo build --manifest-path=Cargo.toml
-$ ./target/debug/ps5_camera_firmware_loader <firmware-file-path>
+cargo build --manifest-path=Cargo.toml
+./target/debug/ps5_camera_firmware_loader <firmware-file-path>
 ```
 
-## Success 	:heavy_check_mark:
+## Success  :heavy_check_mark
 
 Go back to the dmesg window from earlier. You should see the following line:
 
@@ -107,47 +107,47 @@ Camera Controls
          exposure_time_absolute 0x009a0902 (int)    : min=1 max=5000 step=1 default=1000 value=1000 flags=inactive
 
 ioctl: VIDIOC_ENUM_FMT
-	Type: Video Capture
+ Type: Video Capture
 
-	[0]: 'YUYV' (YUYV 4:2:2)
-		Size: Discrete 896x256
-			Interval: Discrete 0.008s (120.000 fps)
-		Size: Discrete 1920x1080
-			Interval: Discrete 0.033s (30.000 fps)
-			Interval: Discrete 0.067s (15.000 fps)
-			Interval: Discrete 0.125s (8.000 fps)
-		Size: Discrete 960x520
-			Interval: Discrete 0.017s (60.000 fps)
-		Size: Discrete 448x256
-			Interval: Discrete 0.008s (120.000 fps)
-		Size: Discrete 1280x800
-			Interval: Discrete 0.017s (60.000 fps)
-			Interval: Discrete 0.033s (30.000 fps)
-			Interval: Discrete 0.067s (15.000 fps)
-			Interval: Discrete 0.125s (8.000 fps)
-		Size: Discrete 640x376
-			Interval: Discrete 0.008s (120.000 fps)
-		Size: Discrete 320x184
-			Interval: Discrete 0.004s (240.004 fps)
-		Size: Discrete 5148x1088
-			Interval: Discrete 0.033s (30.000 fps)
-			Interval: Discrete 0.067s (15.000 fps)
-			Interval: Discrete 0.125s (8.000 fps)
-		Size: Discrete 3840x1080
-			Interval: Discrete 0.033s (30.000 fps)
-			Interval: Discrete 0.067s (15.000 fps)
-			Interval: Discrete 0.125s (8.000 fps)
-		Size: Discrete 1920x520
-			Interval: Discrete 0.017s (60.000 fps)
-		Size: Discrete 2560x800
-			Interval: Discrete 0.017s (60.000 fps)
-			Interval: Discrete 0.033s (30.000 fps)
-			Interval: Discrete 0.067s (15.000 fps)
-			Interval: Discrete 0.125s (8.000 fps)
-		Size: Discrete 1280x376
-			Interval: Discrete 0.008s (120.000 fps)
-		Size: Discrete 640x184
-			Interval: Discrete 0.004s (240.004 fps)
+ [0]: 'YUYV' (YUYV 4:2:2)
+  Size: Discrete 896x256
+   Interval: Discrete 0.008s (120.000 fps)
+  Size: Discrete 1920x1080
+   Interval: Discrete 0.033s (30.000 fps)
+   Interval: Discrete 0.067s (15.000 fps)
+   Interval: Discrete 0.125s (8.000 fps)
+  Size: Discrete 960x520
+   Interval: Discrete 0.017s (60.000 fps)
+  Size: Discrete 448x256
+   Interval: Discrete 0.008s (120.000 fps)
+  Size: Discrete 1280x800
+   Interval: Discrete 0.017s (60.000 fps)
+   Interval: Discrete 0.033s (30.000 fps)
+   Interval: Discrete 0.067s (15.000 fps)
+   Interval: Discrete 0.125s (8.000 fps)
+  Size: Discrete 640x376
+   Interval: Discrete 0.008s (120.000 fps)
+  Size: Discrete 320x184
+   Interval: Discrete 0.004s (240.004 fps)
+  Size: Discrete 5148x1088
+   Interval: Discrete 0.033s (30.000 fps)
+   Interval: Discrete 0.067s (15.000 fps)
+   Interval: Discrete 0.125s (8.000 fps)
+  Size: Discrete 3840x1080
+   Interval: Discrete 0.033s (30.000 fps)
+   Interval: Discrete 0.067s (15.000 fps)
+   Interval: Discrete 0.125s (8.000 fps)
+  Size: Discrete 1920x520
+   Interval: Discrete 0.017s (60.000 fps)
+  Size: Discrete 2560x800
+   Interval: Discrete 0.017s (60.000 fps)
+   Interval: Discrete 0.033s (30.000 fps)
+   Interval: Discrete 0.067s (15.000 fps)
+   Interval: Discrete 0.125s (8.000 fps)
+  Size: Discrete 1280x376
+   Interval: Discrete 0.008s (120.000 fps)
+  Size: Discrete 640x184
+   Interval: Discrete 0.004s (240.004 fps)
 ```
 
 # Troubleshooting
