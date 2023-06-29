@@ -4,7 +4,7 @@
 
 This tool is used to install firmware onto a Playstation 5 camera: <https://www.playstation.com/en-us/accessories/hd-camera/>
 
-**Despite the name, it also works on Playstataion <u>4</u> cameras.**
+**Despite the name, it also works on PlayStation <u>4</u> cameras.**
 
 The main reason why you'd want to load custom firmware onto the camera is to be able to use it as a [UVC device](https://en.wikipedia.org/wiki/USB_video_device_class), i.e. a webcam.
 
