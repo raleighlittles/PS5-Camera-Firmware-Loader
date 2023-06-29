@@ -1,0 +1,40 @@
+name: Bug Report
+description: File a bug report
+title: "[Bug]: "
+labels: ["bug"]
+assignees:
+  - raleighlittles
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: Provide a brief description of the issue
+      description: Also tell us, what did you expect to happen?
+      placeholder: 
+      value: "Bug description"
+    validations:
+      required: true
+  - type: dropdown
+    id: os_version
+    attributes:
+      label: Operating System version
+      description: What operating system did you encounter this issue on?
+      options:
+        - Linux (Default)
+        - Mac
+    validations:
+      required: true
+  - type: dropdown
+    id: camera_version
+    attributes:
+      label: Which camera model was this for?
+      multiple: true
+      options:
+        - PlayStation 4
+        - PlayStation 5
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Please copy and paste any relevant log output. This will be automatically formatted, so no need for backticks ('`')
+      render: shell

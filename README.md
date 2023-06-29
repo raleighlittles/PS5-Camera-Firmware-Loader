@@ -2,23 +2,28 @@
 
 # About
 
-This tool is used to load firmware onto a Playstation 5 camera: https://www.playstation.com/en-us/accessories/hd-camera/
+This tool is used to install firmware onto a Playstation 5 camera: <https://www.playstation.com/en-us/accessories/hd-camera/>
 
-![ps5-camera](https://gmedia.playstation.com/is/image/SIEPDC/hd-camera-ps5-image-block-03-en-02jul20?$facebook$)
+**Despite the name, it also works on Playstataion <u>4</u> cameras.**
 
-The main reason why you'd want to load custom firmware onto the camera is to be able to use it as a [UVC device](https://en.wikipedia.org/wiki/USB_video_device_class).
+The main reason why you'd want to load custom firmware onto the camera is to be able to use it as a [UVC device](https://en.wikipedia.org/wiki/USB_video_device_class), i.e. a webcam.
 
 This is a Linux port of [OrbisEyeCam](https://github.com/psxdev/OrbisEyeCam) for Windows. Kudos to @psxdev for the initial effort of reverse-engineering it.
 
 # Webcam setup
 
-To use this as a webcam, we need to install custom firmware onto the device (the default firmware doesn't use UVC). Download `firmware.bin` from here: https://github.com/Hackinside/PS5_camera_files/blob/main/firmware.bin
+To use this as a webcam, we need to install custom firmware onto the device (the default firmware doesn't support UVC).
 
-(Kudos to @Hackinside for the custom firmware)
+You can find custom firmware for the Playstation camera on Github, here's a few that I've used:
+
+* <https://github.com/prosperodev/hdcamera/blob/main/firmware/21.01-03.20.00.04-00.00.00.bin>
+* <https://github.com/Hackinside/PS5_camera_files/blob/main/firmware.bin>
+
+(Many more firmware versions are available [here](https://github.com/psxdev/luke_firmwares))
 
 ## Connect device
 
-Connect your PS5 camera to a USB 3.0 port on your computer.
+Connect your PS camera to a USB 3.0 port on your computer. (If you have a PS4 camera, you need to purchase an [AUX to USB adapter](https://www.amazon.com/dp/B09NTM46ND))
 
 Make sure you see the following in the dmesg log:
 
@@ -29,40 +34,45 @@ Make sure you see the following in the dmesg log:
  usb 2-4.4.4.4: Product: USB Boot
  usb 2-4.4.4.4: Manufacturer: OmniVision Technologies, Inc.
 ```
+
 Keep the dmesg window open, we'll need it for later.
 
 ## Setup permissions
 
 [libusb](https://libusb.info/) needs permissions to be able to write to USB devices.
 
-0. Make sure your user is part of the `plugdev` group. Easiest way to do this is to check your `/etc/group` file.
+0. Make sure your user is part of the `plugdev` group. Easiest way to do this is to check your `/etc/group` file. If you're not in the plugdev group, run:
+
+```bash
+sudo usermod -a -G plugdev $USER
+```
 
 1. Copy the udev rules (`100-playstation-camera.rules`) to `/etc/udev/rules.d`
 
-2. Reload the udev rules by running: 
+2. Reload the udev rules by running:
 
-`$ sudo udevadm control --reload ; sudo udevadm trigger `
+`$ sudo udevadm control --reload ; sudo udevadm trigger`
 
 ## Run the script
 
-This product has two "back-ends", one written in C++ and one written in Rust. You can use either, but the C++ backend has been tested more thoroughly.
+This product has two "back-ends", one written in C++ and one written in Rust. The C++ version is deprecated, but it still works, and going forward, I will only be supporting the Rust version.
 
 To build & run the C++ version:
 
 ```bash
-$ cmake CMakeLists.txt
-$ make 
-$ ./ps5_camera_firmware_loader <firmware-file-path>
+cmake CMakeLists.txt
+make 
+./ps5_camera_firmware_loader <firmware-file-path>
 ```
 
 To build & run the Rust version:
 
 ```bash
-$ cargo build --manifest-path=Cargo.toml
-$ ./target/debug/ps5_camera_firmware_loader <firmware-file-path>
+cargo build --manifest-path=Cargo.toml
+./target/debug/ps5_camera_firmware_loader <firmware-file-path>
 ```
 
-## Success 	:heavy_check_mark:
+## Success  :heavy_check_mark
 
 Go back to the dmesg window from earlier. You should see the following line:
 
@@ -72,55 +82,72 @@ uvcvideo: Found UVC 1.00 device USB Camera-OV580 (05a9:058c)
 
 Open your favorite webcam program and now you're all set. Note that you must **reinstall the firmware every time the device power cycles**.
 
-Here's a test image:
+Here's a test image from the PS5 camera:
 
 ![test-image](./ps5-camera-test-image.jpg)
 
-If you're using the firmware that I linked to above, then these are the formats it supports:
+If you're using the firmware that I linked to above, then these are the formats and parameters it supports:
 
 ```
-ioctl: VIDIOC_ENUM_FMT
-	Type: Video Capture
+User Controls
 
-	[0]: 'YUYV' (YUYV 4:2:2)
-		Size: Discrete 896x256
-			Interval: Discrete 0.008s (120.000 fps)
-		Size: Discrete 1920x1080
-			Interval: Discrete 0.033s (30.000 fps)
-			Interval: Discrete 0.067s (15.000 fps)
-			Interval: Discrete 0.125s (8.000 fps)
-		Size: Discrete 960x520
-			Interval: Discrete 0.017s (60.000 fps)
-		Size: Discrete 448x256
-			Interval: Discrete 0.008s (120.000 fps)
-		Size: Discrete 1280x800
-			Interval: Discrete 0.017s (60.000 fps)
-			Interval: Discrete 0.033s (30.000 fps)
-			Interval: Discrete 0.067s (15.000 fps)
-			Interval: Discrete 0.125s (8.000 fps)
-		Size: Discrete 640x376
-			Interval: Discrete 0.008s (120.000 fps)
-		Size: Discrete 320x184
-			Interval: Discrete 0.004s (240.004 fps)
-		Size: Discrete 5148x1088
-			Interval: Discrete 0.033s (30.000 fps)
-			Interval: Discrete 0.067s (15.000 fps)
-			Interval: Discrete 0.125s (8.000 fps)
-		Size: Discrete 3840x1080
-			Interval: Discrete 0.033s (30.000 fps)
-			Interval: Discrete 0.067s (15.000 fps)
-			Interval: Discrete 0.125s (8.000 fps)
-		Size: Discrete 1920x520
-			Interval: Discrete 0.017s (60.000 fps)
-		Size: Discrete 2560x800
-			Interval: Discrete 0.017s (60.000 fps)
-			Interval: Discrete 0.033s (30.000 fps)
-			Interval: Discrete 0.067s (15.000 fps)
-			Interval: Discrete 0.125s (8.000 fps)
-		Size: Discrete 1280x376
-			Interval: Discrete 0.008s (120.000 fps)
-		Size: Discrete 640x184
-			Interval: Discrete 0.004s (240.004 fps)
+                     brightness 0x00980900 (int)    : min=0 max=8 step=1 default=4 value=4
+                       contrast 0x00980901 (int)    : min=0 max=8 step=1 default=4 value=4
+                     saturation 0x00980902 (int)    : min=0 max=8 step=1 default=4 value=4
+                            hue 0x00980903 (int)    : min=0 max=11 step=1 default=0 value=0
+        white_balance_automatic 0x0098090c (bool)   : default=1 value=1
+                           gain 0x00980913 (int)    : min=0 max=8 step=1 default=4 value=4
+           power_line_frequency 0x00980918 (menu)   : min=0 max=2 default=1 value=1 (50 Hz)
+      white_balance_temperature 0x0098091a (int)    : min=2800 max=6500 step=100 default=4600 value=4600 flags=inactive
+                      sharpness 0x0098091b (int)    : min=0 max=8 step=1 default=4 value=4
+
+Camera Controls
+
+                  auto_exposure 0x009a0901 (menu)   : min=0 max=3 default=2 value=2 (Shutter Priority Mode)
+         exposure_time_absolute 0x009a0902 (int)    : min=1 max=5000 step=1 default=1000 value=1000 flags=inactive
+
+ioctl: VIDIOC_ENUM_FMT
+ Type: Video Capture
+
+ [0]: 'YUYV' (YUYV 4:2:2)
+  Size: Discrete 896x256
+   Interval: Discrete 0.008s (120.000 fps)
+  Size: Discrete 1920x1080
+   Interval: Discrete 0.033s (30.000 fps)
+   Interval: Discrete 0.067s (15.000 fps)
+   Interval: Discrete 0.125s (8.000 fps)
+  Size: Discrete 960x520
+   Interval: Discrete 0.017s (60.000 fps)
+  Size: Discrete 448x256
+   Interval: Discrete 0.008s (120.000 fps)
+  Size: Discrete 1280x800
+   Interval: Discrete 0.017s (60.000 fps)
+   Interval: Discrete 0.033s (30.000 fps)
+   Interval: Discrete 0.067s (15.000 fps)
+   Interval: Discrete 0.125s (8.000 fps)
+  Size: Discrete 640x376
+   Interval: Discrete 0.008s (120.000 fps)
+  Size: Discrete 320x184
+   Interval: Discrete 0.004s (240.004 fps)
+  Size: Discrete 5148x1088
+   Interval: Discrete 0.033s (30.000 fps)
+   Interval: Discrete 0.067s (15.000 fps)
+   Interval: Discrete 0.125s (8.000 fps)
+  Size: Discrete 3840x1080
+   Interval: Discrete 0.033s (30.000 fps)
+   Interval: Discrete 0.067s (15.000 fps)
+   Interval: Discrete 0.125s (8.000 fps)
+  Size: Discrete 1920x520
+   Interval: Discrete 0.017s (60.000 fps)
+  Size: Discrete 2560x800
+   Interval: Discrete 0.017s (60.000 fps)
+   Interval: Discrete 0.033s (30.000 fps)
+   Interval: Discrete 0.067s (15.000 fps)
+   Interval: Discrete 0.125s (8.000 fps)
+  Size: Discrete 1280x376
+   Interval: Discrete 0.008s (120.000 fps)
+  Size: Discrete 640x184
+   Interval: Discrete 0.004s (240.004 fps)
 ```
 
 # Troubleshooting
