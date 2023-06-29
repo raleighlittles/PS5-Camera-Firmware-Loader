@@ -1,4 +1,6 @@
-This is the `lsusb` output for the device when running its default firmware.
+This is the `lsusb` output for the device when running its default firmware, i.e. before you use this tool to install any firmware.
+
+After you install firmware, the lsusb output will show a UVC device.
 ```
 Bus 002 Device 005: ID 05a9:0580 OmniVision Technologies, Inc. USB Boot
 Device Descriptor:
