@@ -3,9 +3,12 @@ name = "ps5_camera_firmware_loader"
 version = "0.0.1"
 authors = ["Raleigh Littles <raleighlittles@ucsb.edu>"]
 edition = "2021"
-description = "A tool for installing firmware on the Playstation 5 camera"
+description = "A tool for installing firmware on the Playstation 4 or 5 camera"
 repository = "https://github.com/raleighlittles/PS5-Camera-Firmware-Loader/"
 readme = "../README.md"
+license = "MIT"
+keywords = ["playstation", "ps4_camera", "ps5_camera", "omnivision", "uvc"]
+categories = ["command-line-utilities"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
