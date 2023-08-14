@@ -1,4 +1,5 @@
 ![build-badge](https://github.com/raleighlittles/PS5-Camera-Firmware-Loader/actions/workflows/main.yml/badge.svg)
+![crates.io](https://img.shields.io/crates/v/ps5_camera_firmware_loader.svg)
 
 # About
 
