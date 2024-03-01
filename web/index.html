@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebUSB Example</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 </head>
 
 <body>
@@ -12,8 +14,13 @@
 
     <form>
         <input type="file" id="firmwareFileUploadBtn" name="filename">
-        <input type="submit">
     </form>
+
+    <label for="debugLogTextArea">Debug Log</label>
+
+    <!-- Empty by default, filled in later -->
+    <textarea id="debugLogTextArea" name="log" rows="5" cols="50"> </textarea>
+
 
     <script>
         document.getElementById("connectBtn").addEventListener("click", async () => {
@@ -27,7 +34,14 @@
                 .then(selectedDevice => {
                     usbDevice = selectedDevice;
                     return usbDevice.open(); // Begin a session.
-                }).then(() => console.log("Connected to USB device with vendorID=", vendorID, ", productID=", productID))
+                }).then(() => {
+                    
+                    let msg = `Connected to USB device with vendorID=${vendorID}, productID=${productID}`;
+                    console.log(msg);
+
+                    document.getElementById("debugLogTextArea").innerText = msg;
+
+                })
                 // Request exclusive control over interface #0, remember, the device only has 1 interface
                 .then(() => usbDevice.claimInterface(0))
                 .catch(error => { console.error(error); });
