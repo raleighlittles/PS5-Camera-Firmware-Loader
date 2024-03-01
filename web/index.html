@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebUSB Example</title>
+</head>
+
+<body>
+    <button id="connectBtn">Connect to Device</button>
+
+    <form>
+        <input type="file" id="firmwareFileUploadBtn" name="filename">
+        <input type="submit">
+    </form>
+
+    <script>
+        document.getElementById("connectBtn").addEventListener("click", async () => {
+
+            const vendorID = 0x05a9;
+            const productID = 0x0580;
+
+            let usbDevice;
+
+            navigator.usb.requestDevice({ filters: [{ vendorId: vendorID, productId: productID }] })
+                .then(selectedDevice => {
+                    usbDevice = selectedDevice;
+                    return usbDevice.open(); // Begin a session.
+                }).then(() => console.log("Connected to USB device with vendorID=", vendorID, ", productID=", productID))
+                // Request exclusive control over interface #0, remember, the device only has 1 interface
+                .then(() => usbDevice.claimInterface(0))
+                .catch(error => { console.error(error); });
+        }
+
+        ); // end connect click event listener
+
+
+        // https://stackoverflow.com/a/32556944/1576548
+        document.getElementById("firmwareFileUploadBtn").addEventListener("change", function () {
+
+            var reader = new FileReader();
+            reader.onload = function () {
+                var arrayBuffer = this.result;
+                console.log(arrayBuffer);
+            }
+            reader.readAsArrayBuffer(this.files[0]);
+
+        }); // end change file event listener
+    </script>
+</body>
+
+</html>

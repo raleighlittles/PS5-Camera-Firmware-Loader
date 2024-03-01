@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebUSB Example</title>
+</head>
+
+<body>
+    <button id="connectButton">Connect to Device</button>
+
+    <script>
+        document.getElementById('connectButton').addEventListener('click', async () => {
+
+            const vendorID = 0x05a9;
+            const productID = 0x0580;
+
+            let usbDevice;
+
+            navigator.usb.requestDevice({ filters: [{ vendorId: vendorID, productId: productID }] })
+                .then(selectedDevice => {
+                    usbDevice = selectedDevice;
+                    return usbDevice.open(); // Begin a session.
+                }).then(() => console.log("Connected to USB device with vendorID=", vendorID, ", productID=", productID))
+                // Request exclusive control over interface #0, remember, the device only has 1 interface
+                .then(() => usbDevice.claimInterface(0))
+                .catch(error => { console.error(error); });
+            }
+            
+            ); // end click event listener
+    </script>
+</body>
+
+</html>
