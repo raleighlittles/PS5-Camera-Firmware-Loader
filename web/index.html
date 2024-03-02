@@ -72,21 +72,65 @@
 
         let usbDevice;
 
+        let debugLogElement = document.getElementById("debugLogTextArea");
+        let progressBarElement = document.getElementById("programmingProgressBar");
+
+        
         function uploadFirmwareToDevice(usbDevice, firmwareFileAsBytes) {
 
+            const uint16Max = 65535;
+
+            // USB constants
+            const maxUsbPacketSize = 512;
             const bmRequestType = 0x40; // 64d
 
+            const firmwareFileLen = firmwareFileAsBytes.byteLength;
 
-        }
+            let fileByteIdx = 0;
+            
+            let wValue = 0;
 
-        let debugLogElement = document.getElementById("debugLogTextArea");
+            let lowerTransactionIdx = 0x14; // 20d
+            let upperTransactionIdx = 0x15; // 21d
+
+            while (fileByteIdx < firmwareFileLen) {
+
+                let pktSize = Math.min(firmwareFileLen - fileByteIdx, maxUsbPacketSize);
+                let pktEndIdx = fileByteIdx + pktSize;
+
+                let currTransactionIdx;
+
+                if (fileByteIdx < uint16Max) {
+                    curTransactionIdx = lowerTransactionIdx;
+                }
+                else {
+                    curTransactionIdx = upperTransactionIdx;
+                }
+
+                await usbDevice.controlTransferOut({requestType: "standard", recipient: "endpoint", request: bmRequestType, value: wValue, curTransactionIdx, data: firmwareFileAsBytes.slice(fileByteIdx, pktEndIdx)});
+
+                // Increment for next transaction
+                fileByteIdx += pktSize;
+
+                if (wValue >= uint16Max - pktSize) {
+                    // Can't perform the addition because it would overflow
+                    // How much would it overflow by? That's the new value
+                    wValue = ( wValue - (uint16Max - pktSize) );
+                } else {
+                    // Regular case, no overflow
+                    wValue += pktSize;
+                }
+
+            } // end while
+
+        } // end function
 
         document.getElementById("connectBtn").addEventListener("click", async () => {
 
             navigator.usb.requestDevice({ filters: [{ vendorId: vendorID, productId: productID }] })
                 .then(selectedDevice => {
                     usbDevice = selectedDevice;
-                    return usbDevice.open(); // Begin a session.
+                    return usbDevice.open();
                 }).then(() => {
 
                     let msg = `Connected to USB device with vendorID=${vendorID}, productID=${productID} \n`;
@@ -96,7 +140,7 @@
                 })
                 // Request exclusive control over interface #0, remember, the device only has 1 interface
                 .then(() => usbDevice.claimInterface(0))
-                .catch(error => { console.error(error); });
+                .catch(error => { console.error("Error connecting to USB device!", error); });
         }
 
         ); // end connect click event listener
