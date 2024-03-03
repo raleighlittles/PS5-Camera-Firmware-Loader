@@ -26,7 +26,7 @@
 
         <div class="row mt-5">
             <div class="column">
-                <h2> Step #1: </h2>
+                <h2> Step #1 </h2>
             </div>
             <div class="column ml-3 mr-2">
                 <a class="btn btn-outline-primary" id="connectBtn">Connect to Device</a>
@@ -37,12 +37,12 @@
 
 
             <div class="column">
-                <h2> Step #2: </h2>
+                <h2> Step #2 </h2>
             </div>
 
             <div class="column">
                 <div class="mt-5 mb-3">
-                    <label for="firmwareFileUploadBtn" class="form-label">Select a firmware file to install</label>
+                    <label for="firmwareFileUploadBtnLabel" class="form-label">Select a firmware file to install</label>
                     <input class="form-control" type="file" id="firmwareFileUploadBtn">
                 </div>
 
@@ -50,10 +50,10 @@
 
         </div>
 
-
-        <div class="progress mt-4 mb-4" role="progressbar" aria-label="Example with label" id="programmingProgressBar"
+        <!-- to be able to change the progress bar later, the id needs to be on the INNER element, not the outer -->
+        <div class="progress mt-4 mb-4" role="progressbar" aria-label="Example with label"
             aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-            <div class="progress-bar" style="width: 0%"></div>
+            <div class="progress-bar" id="programmingProgressBar" style="width: 0%"></div>
         </div>
 
 
@@ -72,17 +72,33 @@
 
         let usbDevice;
 
-        let debugLogElement = document.getElementById("debugLogTextArea");
-        let progressBarElement = document.getElementById("programmingProgressBar");
+        function updateDebugLog(newString) {
+
+            let debugLogElement = document.getElementById("debugLogTextArea");
+
+            let newLogEntry = `${Date().toLocaleString()} | ${newString} \n`;
+
+            debugLogElement.innerText += newLogEntry;
+
+        }
+    
+
+        function updateProgressBar(value_num, value_denom) {
+
+            let progressBarElement = document.getElementById("programmingProgressBar");
+
+            let newPercentage = `${Math.round( (value_num / value_denom) * 100, 2)}%`;
+
+            progressBarElement.style.width = newPercentage;
+        }
 
         
-        function uploadFirmwareToDevice(usbDevice, firmwareFileAsBytes) {
+        async function uploadFirmwareToDevice(usbDevice, firmwareFileAsBytes) {
 
-            const uint16Max = 65535;
+            const uint16Max = 65536;
 
             // USB constants
             const maxUsbPacketSize = 512;
-            const bmRequestType = 0x40; // 64d
 
             const firmwareFileLen = firmwareFileAsBytes.byteLength;
 
@@ -101,18 +117,24 @@
                 let currTransactionIdx;
 
                 if (fileByteIdx < uint16Max) {
-                    curTransactionIdx = lowerTransactionIdx;
+                    currTransactionIdx = lowerTransactionIdx;
                 }
                 else {
-                    curTransactionIdx = upperTransactionIdx;
+                    currTransactionIdx = upperTransactionIdx;
                 }
 
-                await usbDevice.controlTransferOut({requestType: "standard", recipient: "endpoint", request: bmRequestType, value: wValue, curTransactionIdx, data: firmwareFileAsBytes.slice(fileByteIdx, pktEndIdx)});
+                let transactionData = firmwareFileAsBytes.slice(fileByteIdx, pktEndIdx);
+
+                console.log(transactionData);
+
+                await usbDevice.controlTransferOut({requestType: "standard", recipient: "device", request: 0x0, value: wValue, index: currTransactionIdx}, transactionData);
+
+                //console.log("Transferred", pktSize, "bytes. Value=", wValue, "index=", currTransactionIdx);
 
                 // Increment for next transaction
                 fileByteIdx += pktSize;
 
-                if (wValue >= uint16Max - pktSize) {
+                if (wValue > uint16Max - pktSize) {
                     // Can't perform the addition because it would overflow
                     // How much would it overflow by? That's the new value
                     wValue = ( wValue - (uint16Max - pktSize) );
@@ -121,11 +143,22 @@
                     wValue += pktSize;
                 }
 
+                // Update progress bar
+                updateProgressBar(fileByteIdx, firmwareFileLen);
+
             } // end while
+
+            // now send footer packet
+
+            let footerData = Array([0x5B]).buffer;
+            await usbDevice.controlTransferOut({requestType: "standard", recipient: "device", request: 0x0, value: 0x2200, index: 0x8018}, footerData);
 
         } // end function
 
         document.getElementById("connectBtn").addEventListener("click", async () => {
+
+            const vendorID = 0x05a9;
+            const productID = 0x0580;
 
             navigator.usb.requestDevice({ filters: [{ vendorId: vendorID, productId: productID }] })
                 .then(selectedDevice => {
@@ -135,7 +168,8 @@
 
                     let msg = `Connected to USB device with vendorID=${vendorID}, productID=${productID} \n`;
                     console.log(msg);
-                    debugLogElement.innerText += msg;
+                    //debugLogElement.innerText += msg;
+                    updateDebugLog(msg);
 
                 })
                 // Request exclusive control over interface #0, remember, the device only has 1 interface
@@ -154,18 +188,35 @@
 
             var reader = new FileReader();
 
-            reader.readAsArrayBuffer(this.files[0]);
+            var fileByteArray = [];
 
-            reader.onload = function () {
+            reader.onloadend = function (evt) {
 
-                var arrayBuffer = this.result;
+                if (evt.target.readyState = FileReader.DONE) {
 
-                let msg = `User uploaded file '${firmwareFileUploadElement.value}' with size '${arrayBuffer.byteLength}' bytes \n`;
+                    var arrayBuffer = evt.target.result;
 
-                console.log(msg);
-                debugLogElement.innerText += msg;
+                    var array = new Uint8Array(arrayBuffer);
 
+                    for (var i = 0 ; i < array.length; i++) {
+                        fileByteArray.push(array[i]);
+                    }
+
+                    let msg = `User uploaded file '${firmwareFileUploadElement.value}' with size '${arrayBuffer.byteLength}' bytes \n`;
+
+                    console.log(msg);
+                    //debugLogElement.innerText += msg;
+                    updateDebugLog(msg);
+
+                    console.log("array", array);
+
+                    console.log("fileByteArray", fileByteArray);
+
+                    uploadFirmwareToDevice(usbDevice, fileByteArray).then(() => console.log("finished uploading firmware!"));
+                }
             }
+
+            reader.readAsArrayBuffer(this.files[0]);
 
         }); // end change file event listener
     </script>
