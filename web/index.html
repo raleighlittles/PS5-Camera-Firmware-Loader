@@ -51,8 +51,8 @@
         </div>
 
         <!-- to be able to change the progress bar later, the id needs to be on the INNER element, not the outer -->
-        <div class="progress mt-4 mb-4" role="progressbar" aria-label="Example with label"
-            aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress mt-4 mb-4" role="progressbar" aria-label="Example with label" aria-valuenow="0"
+            aria-valuemin="0" aria-valuemax="100">
             <div class="progress-bar" id="programmingProgressBar" style="width: 0%"></div>
         </div>
 
@@ -81,18 +81,18 @@
             debugLogElement.innerText += newLogEntry;
 
         }
-    
+
 
         function updateProgressBar(value_num, value_denom) {
 
             let progressBarElement = document.getElementById("programmingProgressBar");
 
-            let newPercentage = `${Math.round( (value_num / value_denom) * 100, 2)}%`;
+            let newPercentage = `${Math.round((value_num / value_denom) * 100, 2)}%`;
 
             progressBarElement.style.width = newPercentage;
         }
 
-        
+
         async function uploadFirmwareToDevice(usbDevice, firmwareFileAsBytes) {
 
             const uint16Max = 65536;
@@ -103,7 +103,7 @@
             const firmwareFileLen = firmwareFileAsBytes.byteLength;
 
             let fileByteIdx = 0;
-            
+
             let wValue = 0;
 
             let lowerTransactionIdx = 0x14; // 20d
@@ -127,7 +127,7 @@
 
                 console.log(transactionData);
 
-                await usbDevice.controlTransferOut({requestType: "standard", recipient: "device", request: 0x0, value: wValue, index: currTransactionIdx}, transactionData);
+                await usbDevice.controlTransferOut({ requestType: "standard", recipient: "device", request: 0x0, value: wValue, index: currTransactionIdx }, transactionData);
 
                 //console.log("Transferred", pktSize, "bytes. Value=", wValue, "index=", currTransactionIdx);
 
@@ -137,7 +137,7 @@
                 if (wValue > uint16Max - pktSize) {
                     // Can't perform the addition because it would overflow
                     // How much would it overflow by? That's the new value
-                    wValue = ( wValue - (uint16Max - pktSize) );
+                    wValue = (wValue - (uint16Max - pktSize));
                 } else {
                     // Regular case, no overflow
                     wValue += pktSize;
@@ -151,7 +151,7 @@
             // now send footer packet
 
             let footerData = Array([0x5B]).buffer;
-            await usbDevice.controlTransferOut({requestType: "standard", recipient: "device", request: 0x0, value: 0x2200, index: 0x8018}, footerData);
+            await usbDevice.controlTransferOut({ requestType: "standard", recipient: "device", request: 0x0, value: 0x2200, index: 0x8018 }, footerData);
 
         } // end function
 
@@ -190,6 +190,8 @@
 
             var fileByteArray = [];
 
+            reader.readAsArrayBuffer(this.files[0]);
+
             reader.onloadend = function (evt) {
 
                 if (evt.target.readyState = FileReader.DONE) {
@@ -198,7 +200,7 @@
 
                     var array = new Uint8Array(arrayBuffer);
 
-                    for (var i = 0 ; i < array.length; i++) {
+                    for (var i = 0; i < array.length; i++) {
                         fileByteArray.push(array[i]);
                     }
 
@@ -208,15 +210,13 @@
                     //debugLogElement.innerText += msg;
                     updateDebugLog(msg);
 
-                    console.log("array", array);
+                    console.log("array", array.buffer);
 
-                    console.log("fileByteArray", fileByteArray);
+                    //console.log("fileByteArray", fileByteArray);
 
                     uploadFirmwareToDevice(usbDevice, fileByteArray).then(() => console.log("finished uploading firmware!"));
                 }
             }
-
-            reader.readAsArrayBuffer(this.files[0]);
 
         }); // end change file event listener
     </script>
