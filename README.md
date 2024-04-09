@@ -85,6 +85,8 @@ uvcvideo: Found UVC 1.00 device USB Camera-OV580 (05a9:058c)
 
 Open your favorite webcam program and now you're all set. Note that you must **reinstall the firmware every time the device power cycles**.
 
+To have the firmware automatically installed at startup time, you can use this repository: https://github.com/viecili/ps5cam-firmware-loader-service
+
 Here's a test image from the PS5 camera:
 
 ![test-image](./ps5-camera-test-image.jpg)
@@ -158,3 +160,7 @@ ioctl: VIDIOC_ENUM_FMT
 ## The UVC device is recognized, but all I see is a black screen
 
 Try turning down the frame rate. I've noticed that sometimes the auto-exposure control doesn't seem to work.
+
+## My PS5 won't recognize my camera anymore
+
+Try doing a full reboot (not just rest mode) of your PS5, and then plugging in your camera.
