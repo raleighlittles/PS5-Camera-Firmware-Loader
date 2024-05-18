@@ -1,6 +1,8 @@
 ![build-badge](https://github.com/raleighlittles/PS5-Camera-Firmware-Loader/actions/workflows/main.yml/badge.svg)
 ![crates.io](https://img.shields.io/crates/v/ps5_camera_firmware_loader.svg)
 
+<a href="https://www.buymeacoffee.com/raleighlittles" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
+
 # About
 
 This tool is used to install firmware onto a Playstation 5 camera: <https://www.playstation.com/en-us/accessories/hd-camera/>
