@@ -1,6 +1,6 @@
 [package]
 name = "ps5_camera_firmware_loader"
-version = "0.0.1"
+version = "0.0.2"
 authors = ["Raleigh Littles <raleighlittles@ucsb.edu>"]
 edition = "2021"
 description = "A tool for installing firmware on the Playstation 4 or 5 camera"
