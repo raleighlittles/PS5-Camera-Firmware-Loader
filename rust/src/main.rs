@@ -3,16 +3,12 @@ fn main() {
         .nth(1)
         .expect("No firmware filename received");
 
-    let mut libusb_context: libusb::Context = libusb::Context::new().unwrap();
-
-    libusb_context.set_log_level(libusb::LogLevel::Warning);
 
     // See `libusb` output in documentation for where these come from
     const USB_VENDOR_ID: u16 = 0x05a9;
     const USB_PRODUCT_ID: u16 = 0x0580;
 
-    let mut libusb_dev_handle: libusb::DeviceHandle = libusb_context
-        .open_device_with_vid_pid(USB_VENDOR_ID, USB_PRODUCT_ID)
+    let libusb_dev_handle = rusb::open_device_with_vid_pid(USB_VENDOR_ID, USB_PRODUCT_ID)
         .unwrap();
 
     // Device only has one USB 'endpoint'/interface (see `lsusb` output)
@@ -68,9 +64,10 @@ fn main() {
     let upper_transaction_idx = 0x15; // 21d
 
     /* Goes from 0 to 65536, incrementing by 512. Then, starts over at 0, and continues incrementing.
-    This is again something that was taken from OrbisEyeCam */
-    let mut wValue = std::num::Wrapping(std::u16::MAX);
-    wValue.0 = 0;
+    This is again something that was taken from OrbisEyeCam
+    Corresponds to 'wValue' in standard USB semantics */
+    let mut w_value = std::num::Wrapping(std::u16::MAX);
+    w_value.0 = 0;
 
     while file_byte_idx < firmware_file_len {
         let pkt_size = std::cmp::min(
@@ -86,11 +83,11 @@ fn main() {
             upper_transaction_idx
         };
 
-        let bytes_transferred = libusb_dev_handle
+        let _bytes_transferred = libusb_dev_handle
             .write_control(
                 USB_OUTGOING_PACKET_BM_REQUEST_TYPE,
                 0x0,
-                wValue.0,
+                w_value.0,
                 cur_transaction_idx,
                 &firmware_file_as_bytes[file_byte_idx as usize..pkt_end_idx],
                 std::time::Duration::ZERO,
@@ -98,9 +95,9 @@ fn main() {
             .unwrap();
 
         // Careful with this log statement. Logging in between USB transactions can slow things down enough to where it no longer works
-        //println!("Transferred {} bytes [{} , {}], value= {}, index= {}", bytes_transferred, file_byte_idx, pkt_end_idx, wValue.0, transaction_idx);
+        //println!("Transferred {} bytes [{} , {}], value= {}, index= {}", bytes_transferred, file_byte_idx, pkt_end_idx, w_value.0, transaction_idx);
 
-        wValue += pkt_size as u16;
+        w_value += pkt_size as u16;
         file_byte_idx += pkt_size as usize;
     }
 
