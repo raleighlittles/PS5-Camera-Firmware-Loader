@@ -5,14 +5,14 @@
 
 # About
 
-This tool is used to install firmware onto a Playstation 5 camera.
-
-Despite the name, it also works with the Playstation **4** camera too.
+This tool is used to install firmware onto a Playstation camera. Despite the name of the repository, it also works with Playstation 4 cameras. The supported models are listed below.
 
 | Model number | Console |
 |--------------|---------|
 | CUH-ZEY1     | PS4     |
 | CFI-ZEY1     | PS5     |
+
+It does NOT work with the Playstation 2 ("EyeToy"/SLEH-0003x variants) camera.
 
 The main reason why you'd want to load custom firmware onto the camera is to be able to use it as a [UVC device](https://en.wikipedia.org/wiki/USB_video_device_class), i.e. a webcam.
 
