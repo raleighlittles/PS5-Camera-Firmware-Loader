@@ -65,17 +65,7 @@ $ sudo udevadm control --reload ; sudo udevadm trigger
 
 ## Run the script
 
-This product has two "back-ends", one written in C++ and one written in Rust. The C++ version is deprecated, but it still works, and going forward, I will only be supporting the Rust version.
-
-To build & run the C++ version:
-
-```bash
-$ cmake CMakeLists.txt
-$ make 
-$ ./ps5_camera_firmware_loader <firmware-file-path>
-```
-
-To build & run the Rust version:
+To build & run:
 
 ```bash
 $ cargo build --manifest-path=Cargo.toml
